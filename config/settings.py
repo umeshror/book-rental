@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'oauth2_provider',
     'simple_history',
+    'django_extensions',
 
     # Local Apps
     'apps.core',
