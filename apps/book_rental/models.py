@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -123,7 +123,7 @@ class RentedBook(AuditMixin):
                              help_text='User who has taken the book on rent'
                              )
 
-    rent_date = models.DateField(default=datetime.today(),
+    rent_date = models.DateField(default=date.today,
                                  help_text='Date at which book was rented')
 
     return_date = models.DateField(null=True,
