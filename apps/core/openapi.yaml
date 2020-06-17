@@ -1,0 +1,104 @@
+openapi: 3.0.0
+info:
+  title: User account management
+  description: User account management
+  version: "1.0"
+paths:
+  /api/user:
+    get:
+      summary: List users
+      description: This gives list of users
+      responses:
+        "200":
+          description: Return a list of user details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: Id of the user
+                      example: 1
+                    first_name:
+                      type: string
+                      description: First (and middle) name
+                      example: John
+                    last_name:
+                      type: string
+                      description: Last name
+                      example: Papa
+                    email:
+                      type: string
+                      description: Email
+                      example: 'john@papa.com'
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+        "403":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+    post:
+      summary: Create user
+      description: Create a new user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "201":
+          description: User was successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Bad user data
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+        "403":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        first_name:
+          type: string
+          description: First (and middle) name
+          example: John
+        last_name:
+          type: string
+          description: Last name
+          example: Papa
+        email:
+          type: string
+          description: Email
+          example: 'john@papa.com'
+        password:
+          type: string
+          description: Password
+          example: admin123
