@@ -40,7 +40,7 @@ class RentedBookAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """
-        Get the category and author, so we don't have hundreds of queries. i.e. DB hits
+        Get the book and user, so we don't have hundreds of queries. i.e. DB hits
         """
         return super(
             RentedBookAdmin, self
