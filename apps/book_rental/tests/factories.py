@@ -1,7 +1,6 @@
-import django
-from factory.fuzzy import FuzzyChoice
+import datetime
 
-django.setup()
+from factory.fuzzy import FuzzyChoice
 
 import factory
 from django.contrib.auth.models import User
@@ -47,7 +46,10 @@ class BookFactory(DjangoModelFactory):
 
 class RentedBookFactory(DjangoModelFactory):
     book = factory.SubFactory(BookFactory)
+    user = factory.SubFactory(UserFactory)
     created_by = factory.SubFactory(UserFactory)
+    rent_date = factory.Sequence(lambda n: datetime.date(2020, 1, 1) + datetime.timedelta(days=n))
+    return_date = factory.Sequence(lambda n: datetime.date(2020, 2, 1) + datetime.timedelta(days=n))
 
     class Meta:
         model = RentedBook

@@ -1,6 +1,8 @@
+import datetime
+
 from rest_framework.test import APITestCase
 
-from apps.book_rental.tests.factories import BookFactory, UserFactory
+from apps.book_rental.tests.factories import BookFactory, UserFactory, RentedBookFactory
 from apps.book_rental.views import BookSerializer
 
 from django.test.testcases import TestCase
@@ -48,7 +50,7 @@ class TestBookAPI(APITestCase):
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_data['count'], 102)
-        self.assertEqual(response_data['next'], 'http://testserver/api/book_rental/books/?limit=100&offset=100')
+        self.assertEqual(response_data['next'], 'http://testserver/api/books/?limit=100&offset=100')
 
     def test_detail_api(self):
         """
@@ -59,3 +61,42 @@ class TestBookAPI(APITestCase):
         self.client.force_login(user=self.user)
         response = self.client.get(reverse('books-detail', kwargs={'pk': book.id}))
         self.assertEqual(response.status_code, 200)
+
+
+class TestUserBooksAPI(APITestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        BookFactory.reset_sequence()
+        self.rented_book_1 = RentedBookFactory(
+            user=self.user,
+            rent_date=datetime.date(2020, 5, 1),
+            return_date=datetime.date(2020, 6, 1)
+        )
+        self.rented_book_2 = RentedBookFactory(
+            user=self.user,
+            rent_date=datetime.date(2020, 5, 1),
+            return_date=datetime.date(2020, 5, 10),
+            fine_applied=1.2
+        )
+
+    def test_get_api(self):
+        """
+        Test if paginated response gives exact count and urls
+        Response is tested in Serialiser test cases
+        """
+        self.client.force_login(user=self.user)
+        response = self.client.get(reverse('user-books', kwargs={'user_id': self.user.id}))
+        expected_response = [{'book_name': 'name_0',
+                              'book_id': 1,
+                              'days_rented_for': '31',
+                              'total_charge': '31.0',
+                              'rent_date': '2020-05-01',
+                              'return_date': '2020-06-01'},
+                             {'book_name': 'name_1',
+                              'book_id': 2,
+                              'days_rented_for': '9',
+                              'total_charge': '10.2',
+                              'rent_date': '2020-05-01',
+                              'return_date': '2020-05-10'}]
+        actual_response = response.json()
+        self.assertEqual(actual_response, expected_response)

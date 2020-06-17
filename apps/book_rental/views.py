@@ -48,15 +48,15 @@ class BookViewSet(ReadOnlyModelViewSet):
 
 
 class RentedBookSerialiser(serializers.ModelSerializer):
+    book_id = serializers.IntegerField()
     book_name = serializers.CharField(source='book.name')
-    category_name = serializers.CharField(source='book.category.name')
     days_rented_for = serializers.CharField()
     total_charge = serializers.CharField()
 
     class Meta:
         model = RentedBook
-        exclude = ['created_at', 'created_by', 'updated_at', 'updated_by', 'id',
-                   'has_charges_paid', 'per_day_charge', 'fine_applied', 'user']
+        fields = ['book_name', 'book_id', 'days_rented_for',
+                  'total_charge', 'rent_date', 'return_date']
 
 
 class UserBooksAPIView(GenericAPIView):
@@ -79,7 +79,7 @@ class UserBooksAPIView(GenericAPIView):
                 F('return_date') - F('rent_date'),
                 output_field=DurationField()
             )
-        ).prefetch_related('book', 'book__category')
+        ).prefetch_related('book')
 
     def get(self, request, user_id):
 

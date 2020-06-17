@@ -85,14 +85,14 @@ paths:
               schema:
                 type: object
                 properties:
+                  book_id:
+                    type: integer
+                    description: Id of the book
+                    example: 1
                   book_name:
                     type: string
                     description: Name of the book
                     example: Kite runner
-                  category_name:
-                    type: string
-                    description: Category name of the book
-                    example: Fiction
                   days_rented_for:
                     type: integer
                     description: Days for which book was taken on rent
