@@ -2,12 +2,8 @@ from datetime import date
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils.functional import cached_property
 from django.utils.text import slugify
-from simple_history import register
 from simple_history.models import HistoricalRecords
-
-register(User)
 
 
 class AuditMixin(models.Model):
