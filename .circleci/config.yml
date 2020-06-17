@@ -1,0 +1,56 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/app
+    docker:
+      - image: circleci/python:3.7
+
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - run:
+          name: System setup
+          command: |
+            PYTHONFAULTHANDLER=1
+            sudo apt-get update
+            sudo apt-get install python-pip python-dev build-essential
+
+      - run:
+          name: Install ENV
+          command: |
+            sudo pip install setuptools --upgrade
+            sudo pip install awsebcli --upgrade
+            sudo pip install pipenv
+            pipenv install --system --ignore-pipfile --dev
+
+      - run:
+          name: Python tests
+          command: python manage.py test
+
+      - run:
+          name: Docker Build
+          command: docker build -t umeshvjti/book-rental:latest .
+
+      - run:
+          name: Docker Push
+          command: |
+            docker login -u$DOCKER_USER -p$DOCKER_PASS
+            docker tag umeshvjti/book-rental:latest umeshvjti/book-rental:${CIRCLE_SHA1}
+            docker push umeshvjti/book-rental:latest
+            docker push umeshvjti/book-rental:${CIRCLE_SHA1}
+
+      - run:
+          name: ElasticBean Deploy
+          command: eb deploy
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
