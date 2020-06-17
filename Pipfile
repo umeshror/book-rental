@@ -17,6 +17,7 @@ phonenumbers = "*"
 dj-database-url = "*"
 psycopg2-binary = "*"
 whitenoise = "*"
+django-simple-history = "*"
 
 [requires]
 python_version = "3.7"
