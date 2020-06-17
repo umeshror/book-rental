@@ -2,5 +2,4 @@ __pycache__
 *.pyc
 env/
 mysql_data/
-.ignore/
 staticfiles/
