@@ -105,18 +105,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 
-if os.environ.get('DATABASE') == 'postgres':
+if ENV == 'local':
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': os.environ.get('DB_DATABASE_NAME'),
-            'USER': os.environ.get('DB_USERNAME'),
-            'PASSWORD': os.environ.get('DB_PASSWORD'),
-            'HOST': os.environ.get('DB_HOST'),
-            'PORT': os.environ.get('DB_PORT'),
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
-elif os.environ.get('DATABASE') == 'mysql':
+else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -125,13 +121,6 @@ elif os.environ.get('DATABASE') == 'mysql':
             'PASSWORD': os.environ.get('MYSQL_ROOT_PASSWORD', 'Rental#123'),
             'HOST': os.environ.get('MYSQL_HOST', 'localhost'),
             'PORT': os.environ.get('MYSQL_PORT', '3306')}
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
     }
 
 # Password validation
