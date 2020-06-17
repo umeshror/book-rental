@@ -15,6 +15,7 @@ logs
 CACHE
 staticfiles/
 mysql_data/
+static_data/
 .ignore/
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
