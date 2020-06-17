@@ -1,0 +1,108 @@
+openapi: 3.0.0
+info:
+  title: Book managment
+  description: Book Listing
+  version: "1.0"
+paths:
+  /api/books:
+    get:
+      description: This gives list of books in paginated manner
+      responses:
+        "200":
+          description: Return a list of user details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: Totol numbner of book
+                    example: 1023
+                  next:
+                    type: string
+                    description: Next pagination Url
+                    example: https://api.example.org/accounts/?limit=1&offset=1
+                  previous:
+                    type: string
+                    description: Next pagination Url
+                    example: https://api.example.org/accounts/?limit=1&offset=0
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Book"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+        "403":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+  /api/books/{id}:
+    get:
+      description: This gives list of books in paginated manner
+      responses:
+        "200":
+          description: Return a list of user details
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/Book"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+        "403":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        if:
+          type: integer
+          description: ID of the object
+          example: 1
+        name:
+          type: string
+          description: Name of the book
+          example: Kite runner
+        author:
+          type: string
+          description: Full name of the author
+          example: Khaled Hosseini
+        category:
+          type: string
+          description: Category name of the book
+          example: Fiction
+        slug:
+          type: string
+          description: Slug of the book
+          example: kite-runner
+        description:
+          type: string
+          description: Details of the book
+          example: The Kite Runner is the first novel by Afghan-American author Khaled Hosseini.
+            Published in 2003 by Riverhead Books, it tells the story of Amir,
+            a young boy from the Wazir Akbar Khan district of Kabul, whose closest friend is Hassan.
+

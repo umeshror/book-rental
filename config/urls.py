@@ -26,7 +26,9 @@ from apps.landing_view import index
 urlpatterns = [
     url(r'^$', index, name='index'),
 
-    url('api/', include('apps.core.urls'), name='api_urls'),
+    url('api/user/', include('apps.core.urls'), name='user_urls'),
+
+    url('api/book_rental/', include('apps.book_rental.urls'), name='book_rental_urls'),
     # admin
     path('admin/', admin.site.urls),
 
