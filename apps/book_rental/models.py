@@ -2,9 +2,10 @@ from datetime import date
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.text import slugify
-from simple_history.models import HistoricalRecords
 from simple_history import register
+from simple_history.models import HistoricalRecords
 
 register(User)
 
@@ -112,7 +113,8 @@ class Book(AuditMixin):
 
 class RentedBook(AuditMixin):
     """
-
+    Rented Books of user
+    Model consist of standard per day charge. and if any fine applied
     """
     book = models.ForeignKey(Book,
                              on_delete=models.PROTECT,
@@ -144,14 +146,12 @@ class RentedBook(AuditMixin):
     class Meta:
         unique_together = ('book', 'user', 'rent_date')
 
-    @property
+    @cached_property
     def days_rented_for(self):
         """
         Gives number of days book was rented
         """
-        if self.return_date:
-            delta = self.return_date - self.rent_date
-            return delta.days
+        return ((self.return_date or date.today()) - self.rent_date).days
 
     @property
     def total_charge(self):
@@ -163,6 +163,5 @@ class RentedBook(AuditMixin):
         If has_charges_paid then 0 charges
         """
         if not self.has_charges_paid:
-            delta = self.return_date - self.rent_date
-            return (delta.days * self.per_day_charge) + self.fine_applied
+            return (self.days_rented_for * self.per_day_charge) + self.fine_applied
         return 0

@@ -49,6 +49,33 @@ paths:
                     type: string
   /api/books/{id}:
     get:
+      description: Gives a User's rented books with charges and fine applied
+      responses:
+        "200":
+          description: Return a list of user details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+        "403":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+  /api/user-books/{id}:
+    get:
       description: This gives list of books in paginated manner
       responses:
         "200":
@@ -57,7 +84,33 @@ paths:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/Book"
+                properties:
+                  book_name:
+                    type: string
+                    description: Name of the book
+                    example: Kite runner
+                  category_name:
+                    type: string
+                    description: Category name of the book
+                    example: Fiction
+                  days_rented_for:
+                    type: integer
+                    description: Days for which book was taken on rent
+                    example: 4
+                  total_charge:
+                    type: number
+                    description: Total charges applied
+                    example: 4.4
+                  rent_date:
+                    type: string
+                    format: date
+                    description: Rent started from date
+                    example: 2020-10-10
+                  return_date:
+                    type: string
+                    format: date
+                    description: Rent finished date
+                    example: 2020-12-10
         "400":
           description: Bad request
           content:
@@ -79,7 +132,7 @@ components:
     Book:
       type: object
       properties:
-        if:
+        id:
           type: integer
           description: ID of the object
           example: 1
