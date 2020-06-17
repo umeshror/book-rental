@@ -1,11 +1,12 @@
 from django.contrib.auth.models import User
+from django.test.testcases import TestCase
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from apps.core.views import UserSerializer
 
 
-class TestUserSetup(APITestCase):
+class TestUserSetup(TestCase):
 
     def setUp(self):
         self.user = User.objects.create(first_name="test_name",
