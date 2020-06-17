@@ -1,0 +1,22 @@
+*.log
+*.pot
+*.pyc
+__pycache__/
+media
+.idea/
+env/
+*.pyo
+*.db
+*.project
+*.pydevproject
+.DS_Store
+build
+logs
+CACHE
+staticfiles/
+mysql_data/
+.ignore/
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/config.yml
+!.elasticbeanstalk/*.global.yml

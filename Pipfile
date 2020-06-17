@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+django = "==2.2.13"
+mysqlclient = "==1.4.6"
+pymysql = "*"
+djangorestframework = "*"
+django-oauth-toolkit = "*"
+djangorestframework-simplejwt = "*"
+gunicorn = "*"
+phonenumbers = "*"
+dj-database-url = "*"
+psycopg2-binary = "*"
+whitenoise = "*"
+
+[requires]
+python_version = "3.7"
