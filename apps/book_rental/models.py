@@ -146,7 +146,7 @@ class RentedBook(AuditMixin):
     class Meta:
         unique_together = ('book', 'user', 'rent_date')
 
-    @cached_property
+    @property
     def days_rented_for(self):
         """
         Gives number of days book was rented

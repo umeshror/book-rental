@@ -3,7 +3,7 @@ import datetime
 from rest_framework.test import APITestCase
 
 from apps.book_rental.tests.factories import BookFactory, UserFactory, RentedBookFactory
-from apps.book_rental.views import BookSerializer
+from apps.book_rental.views import BookSerializer, RentedBookSerialiser
 
 from django.test.testcases import TestCase
 
@@ -63,6 +63,58 @@ class TestBookAPI(APITestCase):
         self.assertEqual(response.status_code, 200)
 
 
+class TestUsersBookSerializer(TestCase):
+
+    def setUp(self):
+        self.user = UserFactory()
+        BookFactory.reset_sequence()
+        self.rented_book_1 = RentedBookFactory(
+            user=self.user,
+            rent_date=datetime.date(2020, 5, 1),
+            return_date=datetime.date(2020, 6, 1)
+        )
+
+    def test_get_serialiser_response(self):
+        """
+        Test for single rented books
+        """
+        serialiser = RentedBookSerialiser(self.rented_book_1)
+        actual_response = serialiser.data
+        expected_response = {'book_name': 'name_0',
+                             'book_id': 1,
+                             'days_rented_for': '31',
+                             'total_charge': '31.0',
+                             'rent_date': '2020-05-01',
+                             'return_date': '2020-06-01'}
+        self.assertEqual(actual_response, expected_response)
+
+    def test_list_serialiser_response(self):
+        """
+        Test for multiple rented books
+        """
+        self.rented_book_2 = RentedBookFactory(
+            user=self.user,
+            rent_date=datetime.date(2020, 5, 1),
+            return_date=datetime.date(2020, 5, 10),
+            fine_applied=1.2
+        )
+        serialiser = RentedBookSerialiser([self.rented_book_1, self.rented_book_2], many=True)
+        actual_response = serialiser.data
+        expected_response = [{'book_name': 'name_0',
+                              'book_id': 1,
+                              'days_rented_for': '31',
+                              'total_charge': '31.0',
+                              'rent_date': '2020-05-01',
+                              'return_date': '2020-06-01'},
+                             {'book_name': 'name_1',
+                              'book_id': 2,
+                              'days_rented_for': '9',
+                              'total_charge': '10.2',
+                              'rent_date': '2020-05-01',
+                              'return_date': '2020-05-10'}]
+        self.assertEqual(actual_response, expected_response)
+
+
 class TestUserBooksAPI(APITestCase):
     def setUp(self):
         self.user = UserFactory()
@@ -81,6 +133,7 @@ class TestUserBooksAPI(APITestCase):
 
     def test_get_api(self):
         """
+        Test status code, (e2e)
         Test if paginated response gives exact count and urls
         Response is tested in Serialiser test cases
         """
@@ -100,3 +153,4 @@ class TestUserBooksAPI(APITestCase):
                               'return_date': '2020-05-10'}]
         actual_response = response.json()
         self.assertEqual(actual_response, expected_response)
+        self.assertEqual(response.status_code, 200)
