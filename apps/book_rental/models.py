@@ -99,18 +99,11 @@ class CategoryDayCharge(AuditMixin):
     Stores Category and days wise charges of the Book.
     e.g
 
-    Regular Book                       min_charge  min_days
-    0 - 2 days    Rs. 1 per day        Rs. 2         2
-    3 days to --  Rs. 1.5 per day
+    X Book              per day       min_charge     min_days
+    0 - 2 days          Rs. 1         Rs. 2            2
+    3 days to 30 days   Rs. 1.5       Rs. 4.5          5
+    31 days to  --      Rs. 2         --               --
 
-
-    X Book                                   min_charge     min_days
-    0 - 2 days          Rs. 1 per day        Rs. 2            2
-    3 days to 30 days   Rs. 1.5 per day      Rs. 4.5          5
-    31 days to  --      Rs. 2 per day        --               --
-
-    Y Book                                   min_charge    min_days
-    0 - -- days         Rs. 1 per day        --             --
     """
     category = models.ForeignKey(Category,
                                  related_name='dayswise_charges',
@@ -235,15 +228,15 @@ class RentedBook(AuditMixin):
         """
         Scenerios:
         
-        X Book              per_day_charge      min_charge    min_days
-        0 - 2 days          Rs. 1 per day        Rs. 2          2
-        3 days to 30 days   Rs. 1.5 per day      Rs. 10         5
-        31 days to  --      Rs. 2 per day        Rs. 50         --
-
-                                        charges
+        days_from    days_to    per_day_charge  min_days   min_charge
+        0 days       2 days         Rs.1         2 days     Rs. 2
+        3 days       30 days        Rs.1.5       5 days     Rs. 4.5
+        31 days       --            Rs.2         --         --
+        
+                                       charges (days* per_day_charge)
         days_rented =  1 day           2(min_charge)
         days_rented =  2 days          2*1.0
-        days_rented =  4 days          2*1.0 + 10(min_charge)
+        days_rented =  4 days          2*1.0 + 4.5(min_charge)
         days_rented =  12 days         2*1.0 + 10*1.5
         days_rented =  35 days         2*1.0 + 28*1.5 + 5*2.0
         
@@ -253,7 +246,6 @@ class RentedBook(AuditMixin):
         """
         if self.has_charges_paid:
             return 0
-
         days_rented = self.days_rented
 
         days_calculated = 0
