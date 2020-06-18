@@ -4,7 +4,8 @@ from django.test.testcases import TestCase
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
-from apps.book_rental.tests.factories import BookFactory, UserFactory, RentedBookFactory, CategoryFactory
+from apps.book_rental.tests.factories import BookFactory, UserFactory, RentedBookFactory, CategoryFactory, \
+    CategoryDayChargeFactory
 from apps.book_rental.views import BookSerializer, RentedBookSerialiser
 
 
@@ -80,7 +81,7 @@ class TestUsersBookSerializer(TestCase):
         actual_response = serialiser.data
         expected_response = {'book_name': 'Book name 0',
                              'book_id': 1,
-                             'days_rented_for': '31',
+                             'days_rented': '31',
                              'total_charge': '31.0',
                              'rent_date': '2020-05-01',
                              'return_date': '2020-06-01'}
@@ -100,13 +101,13 @@ class TestUsersBookSerializer(TestCase):
         actual_response = serialiser.data
         expected_response = [{'book_name': 'Book name 0',
                               'book_id': 1,
-                              'days_rented_for': '31',
+                              'days_rented': '31',
                               'total_charge': '31.0',
                               'rent_date': '2020-05-01',
                               'return_date': '2020-06-01'},
                              {'book_name': 'Book name 1',
                               'book_id': 2,
-                              'days_rented_for': '9',
+                              'days_rented': '9',
                               'total_charge': '10.2',
                               'rent_date': '2020-05-01',
                               'return_date': '2020-05-10'}]
@@ -118,14 +119,59 @@ class TestUserBooksAPI(APITestCase):
         self.user = UserFactory()
         BookFactory.reset_sequence()
 
-        novel_cat = CategoryFactory(name='novels', per_day_charge=1.5)
-        regular_cat = CategoryFactory(name='regular', per_day_charge=1.5)
-        fiction_cat = CategoryFactory(name='fiction', per_day_charge=3)
+        novel_cat = CategoryFactory(name='novels')
+        regular_cat = CategoryFactory(name='regular')
+        fiction_cat = CategoryFactory(name='fiction')
 
         fiction_book = BookFactory(name="Fiction book", category=fiction_cat)
         regular_book = BookFactory(name="Regular book", category=regular_cat)
         novel_book = BookFactory(name="Novel book", category=novel_cat)
 
+        regular_dayswise1 = regular_cat.dayswise_charges.first()
+        regular_dayswise1.delete()
+        fiction_dayswise1 = fiction_cat.dayswise_charges.first()
+        fiction_dayswise1.delete()
+        novel_dayswise1 = novel_cat.dayswise_charges.first()
+        novel_dayswise1.delete()
+
+        fiction_dayswise1 = CategoryDayChargeFactory(
+            category=fiction_cat, days_from=0, days_to=2,
+            per_day_charge=1, min_days=2, min_charge=2,
+        )
+
+        fiction_dayswise2 = CategoryDayChargeFactory(
+            category=fiction_cat, days_from=3, days_to=30,
+            per_day_charge=1.5, min_days=5, min_charge=4.5,
+        )
+        fiction_dayswise3 = CategoryDayChargeFactory(
+            category=fiction_cat, days_from=31, per_day_charge=2,
+        )
+        regular_dayswise1 = CategoryDayChargeFactory(
+            category=regular_cat,
+            days_from=0,
+            days_to=2,
+            per_day_charge=1,
+            min_days=2,
+            min_charge=2,
+        )
+        regular_dayswise2 = CategoryDayChargeFactory(
+            category=regular_cat,
+            days_from=3,
+            per_day_charge=1.5,
+        )
+        CategoryDayChargeFactory(
+            category=novel_cat,
+            days_from=0,
+            days_to=3,
+            per_day_charge=1.5,
+            min_days=3,
+            min_charge=4.5,
+        )
+        CategoryDayChargeFactory(
+            category=novel_cat,
+            days_from=4,
+            per_day_charge=1.5,
+        )
         RentedBookFactory(user=self.user,
                           book=fiction_book,
                           rent_date=datetime.date(2020, 5, 1),
@@ -151,21 +197,19 @@ class TestUserBooksAPI(APITestCase):
         response = self.client.get(reverse('user-books', kwargs={'user_id': self.user.id}))
         expected_response = [{'book_name': 'Fiction book',
                               'book_id': 1,
-                              'days_rented_for': '9',
-                              'total_charge': '27.0',
+                              'days_rented': '9',
+                              'total_charge': '12.5',
                               'rent_date': '2020-05-01',
                               'return_date': '2020-05-10'},
-
                              {'book_name': 'Regular book',
                               'book_id': 2,
-                              'days_rented_for': '34',
-                              'total_charge': '51.0',
+                              'days_rented': '34',
+                              'total_charge': '50.0',
                               'rent_date': '2020-05-01',
                               'return_date': '2020-06-04'},
-
                              {'book_name': 'Novel book',
                               'book_id': 3,
-                              'days_rented_for': '31',
+                              'days_rented': '31',
                               'total_charge': '46.5',
                               'rent_date': '2020-05-01',
                               'return_date': '2020-06-01'}]

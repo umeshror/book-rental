@@ -50,12 +50,12 @@ class BookViewSet(ReadOnlyModelViewSet):
 class RentedBookSerialiser(serializers.ModelSerializer):
     book_id = serializers.IntegerField()
     book_name = serializers.CharField(source='book.name')
-    days_rented_for = serializers.CharField()
+    days_rented = serializers.CharField()
     total_charge = serializers.CharField()
 
     class Meta:
         model = RentedBook
-        fields = ['book_name', 'book_id', 'days_rented_for',
+        fields = ['book_name', 'book_id', 'days_rented',
                   'total_charge', 'rent_date', 'return_date']
 
 
