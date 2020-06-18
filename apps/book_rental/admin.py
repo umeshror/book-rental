@@ -1,12 +1,52 @@
 from django.contrib import admin
 
-from apps.book_rental.models import Category, Book, RentedBook
+from apps.book_rental.models import Category, Book, RentedBook, CategoryDayCharge
+
+
+class CategoryDayChargeAdmin(admin.ModelAdmin):
+    list_display = ('category', 'days_from', 'days_to', 'per_day_charge', 'min_charge')
+    search_fields = ['category__name']
+
+    def get_queryset(self, request):
+        """
+        Get the category and author, so we don't have hundreds of queries. i.e. DB hits
+        """
+        return super(
+            CategoryDayChargeAdmin, self
+        ).get_queryset(
+            request
+        ).select_related(
+            'category',
+        )
+
+
+admin.site.register(CategoryDayCharge, CategoryDayChargeAdmin)
+
+
+class CategoryDayChargeInlineAdmin(admin.TabularInline):
+    """
+    Adding an inline CategoryDayCharge model admin for
+    convenience while working with Category in admin
+    """
+    model = CategoryDayCharge
+    extra = 1
+
+    def get_queryset(self, request):
+        """
+        Fetches related models to avoid extra queries
+        """
+        return super(
+            CategoryDayChargeInlineAdmin, self
+        ).get_queryset(
+            request
+        ).select_related('category')
 
 
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ['name']
     fields = ('name', 'slug', 'created_by')
+    inlines = (CategoryDayChargeInlineAdmin,)
 
 
 admin.site.register(Category, CategoryAdmin)
@@ -34,8 +74,10 @@ admin.site.register(Book, BookAdmin)
 
 
 class RentedBookAdmin(admin.ModelAdmin):
-    list_display = ('book', 'user', 'rent_date', 'return_date',
-                    'get_per_day_charge', 'has_charges_paid', 'fine_charged')
+    list_display = ('book', 'user',
+                    'rent_date', 'return_date', 'days_rented',
+                    'fine_charged', 'total_charge', 'has_charges_paid')
+
     search_fields = ['name']
 
     def get_queryset(self, request):
@@ -52,7 +94,5 @@ class RentedBookAdmin(admin.ModelAdmin):
             'user',
         )
 
-    def get_per_day_charge(self, obj):
-        return obj.book.category.per_day_charge
 
 admin.site.register(RentedBook, RentedBookAdmin)

@@ -101,13 +101,13 @@ class CategoryDayCharge(AuditMixin):
 
     Regular Book                       min_charge  min_days
     0 - 2 days    Rs. 1 per day        Rs. 2         2
-    2 days to --  Rs. 1.5 per day
+    3 days to --  Rs. 1.5 per day
 
 
     X Book                                   min_charge     min_days
     0 - 2 days          Rs. 1 per day        Rs. 2            2
-    2 days to 30 days   Rs. 1.5 per day      -----            --
-    30 days to  --      Rs. 2 per day        Rs. 50          --
+    3 days to 30 days   Rs. 1.5 per day      Rs. 4.5          5
+    31 days to  --      Rs. 2 per day        --               --
 
     Y Book                                   min_charge    min_days
     0 - -- days         Rs. 1 per day        --             --
