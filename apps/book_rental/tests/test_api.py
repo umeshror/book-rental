@@ -1,13 +1,11 @@
 import datetime
 
+from django.test.testcases import TestCase
+from django.urls import reverse
 from rest_framework.test import APITestCase
 
-from apps.book_rental.tests.factories import BookFactory, UserFactory, RentedBookFactory
+from apps.book_rental.tests.factories import BookFactory, UserFactory, RentedBookFactory, CategoryFactory
 from apps.book_rental.views import BookSerializer, RentedBookSerialiser
-
-from django.test.testcases import TestCase
-
-from django.urls import reverse
 
 
 class TestBookSerializer(TestCase):
@@ -76,7 +74,7 @@ class TestUsersBookSerializer(TestCase):
 
     def test_get_serialiser_response(self):
         """
-        Test for single rented books
+        Test for single rented books response
         """
         serialiser = RentedBookSerialiser(self.rented_book_1)
         actual_response = serialiser.data
@@ -90,7 +88,7 @@ class TestUsersBookSerializer(TestCase):
 
     def test_list_serialiser_response(self):
         """
-        Test for multiple rented books
+        Test for multiple rented books response
         """
         self.rented_book_2 = RentedBookFactory(
             user=self.user,
@@ -119,38 +117,59 @@ class TestUserBooksAPI(APITestCase):
     def setUp(self):
         self.user = UserFactory()
         BookFactory.reset_sequence()
-        self.rented_book_1 = RentedBookFactory(
-            user=self.user,
-            rent_date=datetime.date(2020, 5, 1),
-            return_date=datetime.date(2020, 6, 1)
-        )
-        self.rented_book_2 = RentedBookFactory(
-            user=self.user,
-            rent_date=datetime.date(2020, 5, 1),
-            return_date=datetime.date(2020, 5, 10),
-            fine_charged=1.2
-        )
+
+        novel_cat = CategoryFactory(name='novels', per_day_charge=1.5)
+        regular_cat = CategoryFactory(name='regular', per_day_charge=1.5)
+        fiction_cat = CategoryFactory(name='fiction', per_day_charge=3)
+
+        fiction_book = BookFactory(name="Fiction book", category=fiction_cat)
+        regular_book = BookFactory(name="Regular book", category=regular_cat)
+        novel_book = BookFactory(name="Novel book", category=novel_cat)
+
+        RentedBookFactory(user=self.user,
+                          book=fiction_book,
+                          rent_date=datetime.date(2020, 5, 1),
+                          return_date=datetime.date(2020, 5, 10))
+
+        RentedBookFactory(user=self.user,
+                          book=regular_book,
+                          rent_date=datetime.date(2020, 5, 1),
+                          return_date=datetime.date(2020, 6, 4))
+
+        RentedBookFactory(user=self.user,
+                          book=novel_book,
+                          rent_date=datetime.date(2020, 5, 1),
+                          return_date=datetime.date(2020, 6, 1))
 
     def test_get_api(self):
         """
         Test status code, (e2e)
-        Test if paginated response gives exact count and urls
-        Response is tested in Serialiser test cases
+        Cat 1
+
         """
         self.client.force_login(user=self.user)
         response = self.client.get(reverse('user-books', kwargs={'user_id': self.user.id}))
-        expected_response = [{'book_name': 'Book name 0',
+        expected_response = [{'book_name': 'Fiction book',
                               'book_id': 1,
-                              'days_rented_for': '31',
-                              'total_charge': '31.0',
-                              'rent_date': '2020-05-01',
-                              'return_date': '2020-06-01'},
-                             {'book_name': 'Book name 1',
-                              'book_id': 2,
                               'days_rented_for': '9',
-                              'total_charge': '10.2',
+                              'total_charge': '27.0',
                               'rent_date': '2020-05-01',
-                              'return_date': '2020-05-10'}]
+                              'return_date': '2020-05-10'},
+
+                             {'book_name': 'Regular book',
+                              'book_id': 2,
+                              'days_rented_for': '34',
+                              'total_charge': '51.0',
+                              'rent_date': '2020-05-01',
+                              'return_date': '2020-06-04'},
+
+                             {'book_name': 'Novel book',
+                              'book_id': 3,
+                              'days_rented_for': '31',
+                              'total_charge': '46.5',
+                              'rent_date': '2020-05-01',
+                              'return_date': '2020-06-01'}]
+
         actual_response = response.json()
         self.assertEqual(actual_response, expected_response)
         self.assertEqual(response.status_code, 200)
