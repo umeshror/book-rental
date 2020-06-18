@@ -37,9 +37,9 @@ class TestUsersBookSerializer(TestCase):
         self.assertEqual(self.rented_book.total_charge, 31.0)
 
         # change per_day_charge for the selected rented book
-        self.rented_book.per_day_charge = 2
+        self.rented_book.book.category.per_day_charge = 2
         self.assertEqual(self.rented_book.total_charge, 62.0)
 
         # add fine selected rented book
-        self.rented_book.fine_applied = 11.5
+        self.rented_book.fine_charged = 11.5
         self.assertEqual(self.rented_book.total_charge, 73.5)

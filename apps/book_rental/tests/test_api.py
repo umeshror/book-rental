@@ -19,7 +19,7 @@ class TestBookSerializer(TestCase):
 
         self.book = BookFactory(author=self.author,
                                 name="Da Vinci Code",
-                                category__name='Fiction',
+                                category__name='fiction',
                                 created_by=self.user)
 
     def test_serialiser_response(self):
@@ -27,7 +27,7 @@ class TestBookSerializer(TestCase):
         actual_response = serialiser.data
         expected_response = {'id': 1,
                              'author': self.author.get_full_name(),
-                             'category': 'Fiction',
+                             'category': 'fiction',
                              'name': 'Da Vinci Code',
                              'slug': 'da-vinci-code',
                              'description': 'description_0',
@@ -96,7 +96,7 @@ class TestUsersBookSerializer(TestCase):
             user=self.user,
             rent_date=datetime.date(2020, 5, 1),
             return_date=datetime.date(2020, 5, 10),
-            fine_applied=1.2
+            fine_charged=1.2
         )
         serialiser = RentedBookSerialiser([self.rented_book_1, self.rented_book_2], many=True)
         actual_response = serialiser.data
@@ -128,7 +128,7 @@ class TestUserBooksAPI(APITestCase):
             user=self.user,
             rent_date=datetime.date(2020, 5, 1),
             return_date=datetime.date(2020, 5, 10),
-            fine_applied=1.2
+            fine_charged=1.2
         )
 
     def test_get_api(self):

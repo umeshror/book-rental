@@ -22,7 +22,7 @@ class UserFactory(DjangoModelFactory):
 
 
 class CategoryFactory(DjangoModelFactory):
-    name = factory.fuzzy.FuzzyChoice(["Fiction", "General", "Novels", "Horror"])
+    name = factory.fuzzy.FuzzyChoice(["regular", "fiction", "novels"])
     created_by = factory.SubFactory(UserFactory)
 
     class Meta:

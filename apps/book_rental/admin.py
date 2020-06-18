@@ -35,7 +35,7 @@ admin.site.register(Book, BookAdmin)
 
 class RentedBookAdmin(admin.ModelAdmin):
     list_display = ('book', 'user', 'rent_date', 'return_date',
-                    'per_day_charge', 'has_charges_paid', 'fine_applied')
+                    'get_per_day_charge', 'has_charges_paid', 'fine_charged')
     search_fields = ['name']
 
     def get_queryset(self, request):
@@ -48,8 +48,11 @@ class RentedBookAdmin(admin.ModelAdmin):
             request
         ).select_related(
             'book',
+            'book__category',
             'user',
         )
 
+    def get_per_day_charge(self, obj):
+        return obj.book.category.per_day_charge
 
 admin.site.register(RentedBook, RentedBookAdmin)

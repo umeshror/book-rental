@@ -5,6 +5,12 @@ from django.db import models
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
+CATEGORY_CHOICES = (
+    ('regular', 'Regular'),
+    ('fiction', 'Fiction'),
+    ('novels', 'Novels'),
+)
+
 
 class AuditMixin(models.Model):
     """
@@ -46,11 +52,18 @@ class Category(AuditMixin):
     """
     name = models.CharField(max_length=50,
                             blank=False,
+                            default='regular',
+                            choices=CATEGORY_CHOICES,
                             help_text='Name of the Category')
 
     slug = models.SlugField(unique=True,
                             help_text="Human readable slug used "
                                       "for hyperlinking e.g. 'drama-fiction'")
+
+    per_day_charge = models.FloatField(default=1.0,
+                                       help_text='Per day charge for the book of this category'
+                                                 'default is Rs. 1.0 per day for all the category'
+                                                 'Can be changed for individual category')
 
     def __str__(self):
         return self.name
@@ -128,15 +141,10 @@ class RentedBook(AuditMixin):
                                    blank=True,
                                    help_text='Date at which book was returned')
 
-    per_day_charge = models.FloatField(default=1.0,
-                                       help_text='Per day charge for the book it was rented'
-                                                 'default its Rs. 1.0 per day for all the books'
-                                                 'Can be changed for individual book')
-
     has_charges_paid = models.BooleanField(default=False,
                                            help_text='Has the User paid the bills')
 
-    fine_applied = models.FloatField(default=0,
+    fine_charged = models.FloatField(default=0,
                                      help_text='Any fine applied to User for given book')
 
     class Meta:
@@ -159,5 +167,5 @@ class RentedBook(AuditMixin):
         If has_charges_paid then 0 charges
         """
         if not self.has_charges_paid:
-            return (self.days_rented_for * self.per_day_charge) + self.fine_applied
+            return (self.days_rented_for * self.book.category.per_day_charge) + self.fine_charged
         return 0
