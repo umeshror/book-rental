@@ -2,6 +2,8 @@ from datetime import date
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
@@ -60,11 +62,6 @@ class Category(AuditMixin):
                             help_text="Human readable slug used "
                                       "for hyperlinking e.g. 'drama-fiction'")
 
-    per_day_charge = models.FloatField(default=1.0,
-                                       help_text='Per day charge for the book of this category'
-                                                 'default is Rs. 1.0 per day for all the category'
-                                                 'Can be changed for individual category')
-
     def __str__(self):
         return self.name
 
@@ -79,6 +76,72 @@ class Category(AuditMixin):
     class Meta:
         # custom plural name will overrite 'Categorys'
         verbose_name_plural = "Categories"
+
+
+@receiver(post_save, sender=Category)
+def add_default_category_day_charges(sender, instance, **kwargs):
+    """
+    This will add default Category charges if not exist to
+    from_Day : 0
+    to_day : null
+    per_day_charge : Rs. 1
+    min_charge : Rs. 0
+
+    This will make sure that every new category will have default CategoryDayCharge
+    """
+    # note: cannot use .exists() on related manager
+    if instance.dayswise_charges.count() == 0:
+        instance.dayswise_charges.create(created_by=instance.created_by)
+
+
+class CategoryDayCharge(AuditMixin):
+    """
+    Stores Category and days wise charges of the Book.
+    e.g
+
+    Regular Book                       min_charge  min_days
+    0 - 2 days    Rs. 1 per day        Rs. 2         2
+    2 days to --  Rs. 1.5 per day
+
+
+    X Book                                   min_charge     min_days
+    0 - 2 days          Rs. 1 per day        Rs. 2            2
+    2 days to 30 days   Rs. 1.5 per day      -----            --
+    30 days to  --      Rs. 2 per day        Rs. 50          --
+
+    Y Book                                   min_charge    min_days
+    0 - -- days         Rs. 1 per day        --             --
+    """
+    category = models.ForeignKey(Category,
+                                 related_name='dayswise_charges',
+                                 on_delete=models.PROTECT,
+                                 help_text="Category for which this charge is applied")
+
+    days_from = models.IntegerField(default=0,
+                                    help_text="From this number of day per_day_charge starts")
+
+    days_to = models.IntegerField(null=True,
+                                  blank=True,
+                                  help_text="Till this number of day per_day_charge will be applied")
+
+    per_day_charge = models.FloatField(default=1.0,
+                                       help_text='Per day charge for the book of this category'
+                                                 'default is Rs. 1.0 per day for all the category'
+                                                 'Can be changed for individual category')
+
+    min_charge = models.FloatField(default=0,
+                                   help_text='Minimum charges are considered when number of '
+                                             'days are less than min_days')
+
+    min_days = models.IntegerField(null=True,
+                                   blank=True,
+                                   help_text="Minimum days to apply min_charges")
+
+    def __str__(self):
+        return "{} to {}: {}".format(self.days_from, self.days_to or "-", self.per_day_charge)
+
+    class Meta:
+        unique_together = ('category', 'days_from')
 
 
 class Book(AuditMixin):
@@ -151,7 +214,7 @@ class RentedBook(AuditMixin):
         unique_together = ('book', 'user', 'rent_date')
 
     @property
-    def days_rented_for(self):
+    def days_rented(self):
         """
         Gives number of days book was rented
         """
@@ -160,12 +223,71 @@ class RentedBook(AuditMixin):
     @property
     def total_charge(self):
         """
+        Note: make sure you use prefetch_related before calling this method
+        else it will do multiple db hits
+
         Total Charges for the user for given book.
 
         If not has_charges_paid then calculate on per day basis plus any fine applied
 
         If has_charges_paid then 0 charges
         """
-        if not self.has_charges_paid:
-            return (self.days_rented_for * self.book.category.per_day_charge) + self.fine_charged
-        return 0
+        """
+        Scenerios:
+        
+        X Book              per_day_charge      min_charge    min_days
+        0 - 2 days          Rs. 1 per day        Rs. 2          2
+        3 days to 30 days   Rs. 1.5 per day      Rs. 10         5
+        31 days to  --      Rs. 2 per day        Rs. 50         --
+
+                                        charges
+        days_rented =  1 day           2(min_charge)
+        days_rented =  2 days          2*1.0
+        days_rented =  4 days          2*1.0 + 10(min_charge)
+        days_rented =  12 days         2*1.0 + 10*1.5
+        days_rented =  35 days         2*1.0 + 28*1.5 + 5*2.0
+        
+        
+        Y Book                                   min_charge    min_days
+        0 - -- days         Rs. 1 per day        --             --
+        """
+        if self.has_charges_paid:
+            return 0
+
+        days_rented = self.days_rented
+
+        days_calculated = 0
+        total_charges = 0
+        for dayswise in self.book.category.dayswise_charges.all():
+
+            # if days_calculated is equal to days_rented means no more days left for calculation
+            if days_calculated == days_rented:
+                break
+
+            # if days_rented is less than min_days then apply min_charge
+            # e.g days_rented = 1  and (days_from = 2  : days_to = 4 , min_days= 2)
+            if dayswise.min_days and days_rented <= dayswise.min_days:
+                total_charges += dayswise.min_charge
+                break
+
+            # if days_to has no limit in this slot
+            # e.g days_rented = 4  and (days_from = 2  : days_to = -- (no limit))
+            if not dayswise.days_to:
+                total_charges += ((days_rented - days_calculated) * dayswise.per_day_charge)
+                break
+
+            # if days_rented is between days_from and days_to
+            # e.g days_rented = 4  and (days_from = 2  : days_to = 10)
+            if dayswise.days_from <= days_rented <= dayswise.days_to:
+                days_duration = days_rented - days_calculated
+                total_charges += (days_duration * dayswise.per_day_charge)
+                days_calculated += days_duration
+
+            # if days_rented is between greater days_from but less tha days_to
+            # e.g days_rented = 15  and (days_from = 2  : days_to = 10)
+            elif dayswise.days_from <= days_rented > dayswise.days_to:
+                days_duration = dayswise.days_to - dayswise.days_from
+                total_charges += (days_duration * dayswise.per_day_charge)
+                days_calculated += days_duration
+
+        return total_charges + self.fine_charged
