@@ -93,7 +93,7 @@ paths:
                     type: string
                     description: Name of the book
                     example: Kite runner
-                  days_rented_for:
+                  days_rented:
                     type: integer
                     description: Days for which book was taken on rent
                     example: 4
