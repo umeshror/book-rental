@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyChoice
 
-from apps.book_rental.models import Category, Book, RentedBook
+from apps.book_rental.models import Category, Book, RentedBook, CategoryDayCharge
 
 
 class UserFactory(DjangoModelFactory):
@@ -23,11 +23,18 @@ class UserFactory(DjangoModelFactory):
 class CategoryFactory(DjangoModelFactory):
     name = factory.fuzzy.FuzzyChoice(["regular", "fiction", "novels"])
     created_by = factory.SubFactory(UserFactory)
-    per_day_charge = 1.0
 
     class Meta:
         model = Category
         django_get_or_create = ('name',)
+
+
+class CategoryDayChargeFactory(DjangoModelFactory):
+    category = factory.SubFactory(CategoryFactory)
+    created_by = factory.SubFactory(UserFactory)
+
+    class Meta:
+        model = CategoryDayCharge
 
 
 class BookFactory(DjangoModelFactory):
@@ -53,5 +60,3 @@ class RentedBookFactory(DjangoModelFactory):
 
     class Meta:
         model = RentedBook
-
-
