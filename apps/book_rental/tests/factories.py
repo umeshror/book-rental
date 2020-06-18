@@ -1,10 +1,9 @@
 import datetime
 
-from factory.fuzzy import FuzzyChoice
-
 import factory
 from django.contrib.auth.models import User
 from factory.django import DjangoModelFactory
+from factory.fuzzy import FuzzyChoice
 
 from apps.book_rental.models import Category, Book, RentedBook
 
@@ -24,6 +23,7 @@ class UserFactory(DjangoModelFactory):
 class CategoryFactory(DjangoModelFactory):
     name = factory.fuzzy.FuzzyChoice(["regular", "fiction", "novels"])
     created_by = factory.SubFactory(UserFactory)
+    per_day_charge = 1.0
 
     class Meta:
         model = Category
@@ -31,7 +31,7 @@ class CategoryFactory(DjangoModelFactory):
 
 
 class BookFactory(DjangoModelFactory):
-    name = factory.Sequence(lambda n: 'name_{}'.format(n))
+    name = factory.Sequence(lambda n: 'Book name {}'.format(n))
     description = factory.Sequence(lambda n: 'description_{}'.format(n))
 
     book_quantity = factory.Sequence(lambda n: n)
@@ -53,3 +53,5 @@ class RentedBookFactory(DjangoModelFactory):
 
     class Meta:
         model = RentedBook
+
+

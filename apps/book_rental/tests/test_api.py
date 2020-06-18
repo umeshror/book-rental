@@ -80,7 +80,7 @@ class TestUsersBookSerializer(TestCase):
         """
         serialiser = RentedBookSerialiser(self.rented_book_1)
         actual_response = serialiser.data
-        expected_response = {'book_name': 'name_0',
+        expected_response = {'book_name': 'Book name 0',
                              'book_id': 1,
                              'days_rented_for': '31',
                              'total_charge': '31.0',
@@ -100,13 +100,13 @@ class TestUsersBookSerializer(TestCase):
         )
         serialiser = RentedBookSerialiser([self.rented_book_1, self.rented_book_2], many=True)
         actual_response = serialiser.data
-        expected_response = [{'book_name': 'name_0',
+        expected_response = [{'book_name': 'Book name 0',
                               'book_id': 1,
                               'days_rented_for': '31',
                               'total_charge': '31.0',
                               'rent_date': '2020-05-01',
                               'return_date': '2020-06-01'},
-                             {'book_name': 'name_1',
+                             {'book_name': 'Book name 1',
                               'book_id': 2,
                               'days_rented_for': '9',
                               'total_charge': '10.2',
@@ -139,13 +139,13 @@ class TestUserBooksAPI(APITestCase):
         """
         self.client.force_login(user=self.user)
         response = self.client.get(reverse('user-books', kwargs={'user_id': self.user.id}))
-        expected_response = [{'book_name': 'name_0',
+        expected_response = [{'book_name': 'Book name 0',
                               'book_id': 1,
                               'days_rented_for': '31',
                               'total_charge': '31.0',
                               'rent_date': '2020-05-01',
                               'return_date': '2020-06-01'},
-                             {'book_name': 'name_1',
+                             {'book_name': 'Book name 1',
                               'book_id': 2,
                               'days_rented_for': '9',
                               'total_charge': '10.2',
