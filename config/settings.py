@@ -165,7 +165,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-if ENV == 'local':
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-else:
-    STATIC_ROOT = '/srv/static/'
+STATIC_ROOT = '/srv/static/'
