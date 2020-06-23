@@ -1,9 +1,10 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from apps.book_rental.models import Category, Book, RentedBook, CategoryDayCharge
 
 
-class CategoryDayChargeAdmin(admin.ModelAdmin):
+class CategoryDayChargeAdmin(SimpleHistoryAdmin):
     list_display = ('category', 'days_from', 'days_to', 'per_day_charge', 'min_charge')
     search_fields = ['category__name']
 
@@ -42,7 +43,7 @@ class CategoryDayChargeInlineAdmin(admin.TabularInline):
         ).select_related('category')
 
 
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(SimpleHistoryAdmin):
     list_display = ('name', 'slug')
     search_fields = ['name']
     fields = ('name', 'slug', 'created_by')
@@ -52,7 +53,7 @@ class CategoryAdmin(admin.ModelAdmin):
 admin.site.register(Category, CategoryAdmin)
 
 
-class BookAdmin(admin.ModelAdmin):
+class BookAdmin(SimpleHistoryAdmin):
     list_display = ('name', 'slug', 'category', 'author', 'book_quantity')
     search_fields = ['name']
 
@@ -73,7 +74,7 @@ class BookAdmin(admin.ModelAdmin):
 admin.site.register(Book, BookAdmin)
 
 
-class RentedBookAdmin(admin.ModelAdmin):
+class RentedBookAdmin(SimpleHistoryAdmin):
     list_display = ('book', 'user',
                     'rent_date', 'return_date', 'days_rented',
                     'fine_charged', 'total_charge', 'has_charges_paid')
